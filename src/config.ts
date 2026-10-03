@@ -38,7 +38,13 @@ function loadSystemInstruction(): string {
 export const env = {
   apiKey,
   port: Number(process.env.PORT ?? 3000),
-  model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
+  model: process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite",
   systemInstruction: loadSystemInstruction(),
   whatsappEnabled: process.env.WHATSAPP_ENABLED === "true",
+  whatsappCloudEnabled: process.env.WHATSAPP_CLOUD_ENABLED === "true",
+  whatsappToken: process.env.WHATSAPP_TOKEN ?? "",
+  whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID ?? "",
+  whatsappVerifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? "",
+  whatsappAppSecret: process.env.WHATSAPP_APP_SECRET ?? "",
+  whatsappApiVersion: process.env.WHATSAPP_API_VERSION ?? "v21.0",
 };

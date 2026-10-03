@@ -11,8 +11,7 @@ import {
 } from "@whiskeysockets/baileys";
 import qrcode from "qrcode-terminal";
 import { env } from "./config.js";
-import { generateReply } from "./gemini.js";
-import { appendMessages, getHistory } from "./sessions.js";
+import { runAgent } from "./agent/graph.js";
 
 const AUTH_DIR = "whatsapp-auth";
 
@@ -121,15 +120,19 @@ export function startWhatsApp(): () => void {
         try {
           await sock.readMessages([message.key]);
           await sock.sendPresenceUpdate("composing", jid);
-          const reply = await generateReply(getHistory(sessionId), text.trim());
-          appendMessages(sessionId, [
-            { role: "user", text: text.trim() },
-            { role: "model", text: reply },
-          ]);
+          const reply = await runAgent(sessionId, text.trim());
           await sock.sendMessage(jid, { text: reply }, { quoted: message });
           await sock.sendPresenceUpdate("paused", jid);
         } catch (error) {
           console.error("[whatsapp] Error generando respuesta:", error);
+          const detalle = error instanceof Error ? error.message : String(error);
+          const aviso =
+            detalle.includes("429") || detalle.toLowerCase().includes("quota")
+              ? "En este momento alcanzamos el limite de uso. Por favor intenta nuevamente mas tarde."
+              : "Ocurrio un error al generar la respuesta. Por favor intenta de nuevo.";
+          await sock
+            .sendMessage(jid, { text: aviso }, { quoted: message })
+            .catch(() => undefined);
         }
       }
     });
