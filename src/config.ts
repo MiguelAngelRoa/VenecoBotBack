@@ -40,4 +40,5 @@ export const env = {
   port: Number(process.env.PORT ?? 3000),
   model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
   systemInstruction: loadSystemInstruction(),
+  whatsappEnabled: process.env.WHATSAPP_ENABLED === "true",
 };

@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config.js";
 import { chatRouter } from "./routes/chat.js";
+import { startWhatsApp } from "./whatsapp.js";
 
 const app = express();
 
@@ -21,4 +22,8 @@ app.use((_req, res) => {
 
 app.listen(env.port, () => {
   console.log(`VenecoBot escuchando en http://localhost:${env.port}`);
+
+  if (env.whatsappEnabled) {
+    startWhatsApp();
+  }
 });
