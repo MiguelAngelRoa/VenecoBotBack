@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VenecoBot</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      main { width: min(720px, 100%); padding: 24px; display: flex; flex-direction: column; }
+      h1 { font-size: 1.25rem; }
+      #messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+      .msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; white-space: pre-wrap; }
+      .user { align-self: flex-end; background: #2563eb; }
+      .model { align-self: flex-start; background: #1e293b; }
+      form { display: flex; gap: 8px; margin-top: 12px; }
+      input {
+        flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155;
+        background: #1e293b; color: inherit; font-size: 1rem;
+      }
+      button { padding: 12px 18px; border: 0; border-radius: 10px; background: #2563eb; color: #fff; cursor: pointer; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>VenecoBot</h1>
+      <div id="messages"></div>
+      <form id="form">
+        <input id="input" placeholder="Escribe tu mensaje..." autocomplete="off" />
+        <button id="send" type="submit">Enviar</button>
+      </form>
+    </main>
+    <script>
+      const sessionId = localStorage.getItem("venecobot-session") || crypto.randomUUID();
+      localStorage.setItem("venecobot-session", sessionId);
+
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const send = document.getElementById("send");
+      const messages = document.getElementById("messages");
+
+      function addMessage(role, text) {
+        const div = document.createElement("div");
+        div.className = "msg " + role;
+        div.textContent = text;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage("user", message);
+        input.value = "";
+        send.disabled = true;
+
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message, sessionId }),
+          });
+          const data = await res.json();
+          addMessage("model", data.reply || data.error || "Sin respuesta");
+        } catch (error) {
+          addMessage("model", "Error de conexion: " + error.message);
+        } finally {
+          send.disabled = false;
+          input.focus();
+        }
+      });
+    </script>
+  </body>
+</html>
